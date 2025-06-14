@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultimate Tic Tac Toe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg-color: #f5f5f5;
+  --board-bg: #ffffff;
+  --cell-bg: #e9e9e9;
+  --cell-hover: #dcdcdc;
+  --text-color: #333333;
+  --accent-x: #673ab7;  /* Changed to purple */
+  --accent-o: #f44336;  /* Changed to red */
+  --active-board: #e8f5e9;  /* Light green */
+  --button-bg: #673ab7;
+  --button-hover: #5e35b1;
+  --button-text: white;
+  --modal-bg: rgba(0, 0, 0, 0.5);
+  --status-text: #555;
+  --win-color: #4caf50;
+  --lose-color: #f44336;
+  --draw-color: #607d8b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  margin: 0;
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+  font-weight: 700;
+  color: #333;
+  font-size: 2rem;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+}
+
+button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.big-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 90vw;
+  margin-bottom: 1.5rem;
+  background-color: #f0f0f0;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.small-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 5px;
+  background: var(--board-bg);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+}
+
+.small-board.active {
+  background-color: var(--active-board);
+  box-shadow: 0 0 0 3px var(--win-color);
+  border: 1px solid var(--win-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.small-board.won-X {
+  background-color: rgba(103, 58, 183, 0.1);
+  border: 1px solid var(--accent-x);
+}
+
+.small-board.won-O {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--accent-o);
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  background: var(--cell-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cell:hover:not(.disabled) {
+  background-color: var(--cell-hover);
+  transform: scale(1.05);
+}
+
+.cell.disabled {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.cell-X {
+  color: var(--accent-x);
+}
+
+.cell-O {
+  color: var(--accent-o);
+}
+
+.status {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--status-text);
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--modal-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-20px);
+  transition: transform 0.3s;
+  text-align: center;
+}
+
+.modal.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.modal-body {
+  line-height: 1.6;
+  color: #555;
+}
+
+.modal-body ul {
+  padding-left: 1.2rem;
+}
+
+.modal-body li {
+  margin-bottom: 0.8rem;
+}
+
+.result-modal .modal-content {
+  max-width: 400px;
+}
+
+.result-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.win-title {
+  color: var(--win-color);
+}
+
+.lose-title {
+  color: var(--lose-color);
+}
+
+.draw-title {
+  color: var(--draw-color);
+}
+
+.result-message {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.winning-boards {
+  font-weight: 600;
+  color: var(--accent-x);
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background-color: rgba(103, 58, 183, 0.1);
+  border-radius: 4px;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #f00;
+  border-radius: 50%;
+  animation: fall 5s linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .cell {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  .controls {
+    gap: 0.5rem;
+  }
+  
+  button {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .status {
+    font-size: 1rem;
+  }
+  
+  .result-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ultimate Tic Tac Toe</h1>
+    <div class="controls">
+      <button id="restartButton">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        Restart
+      </button>
+      <button id="instructionsButton">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        How to Play
+      </button>
+    </div>
+  </header>
+
+  <div class="status" id="status">Player X's turn (start anywhere)</div>
+  <div class="big-board" id="bigBoard"></div>
+
+  <div class="modal" id="instructionsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">How to Play Ultimate Tic Tac Toe</h2>
+        <button class="close-button" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>The board consists of 9 small tic-tac-toe boards arranged in a 3x3 grid</li>
+          <li>Players alternate placing X or O in the small boards</li>
+          <li>Your move determines where your opponent must play next:
+            <ul>
+              <li>If you play in a small board's top-right corner, your opponent must play in the top-right small board of the main grid</li>
+            </ul>
+          </li>
+          <li>If sent to a small board that's already won or full, you can choose any available small board</li>
+          <li>Win a small board by getting 3 in a row (like regular tic-tac-toe)</li>
+          <li>Win the game by winning 3 small boards in a row on the main grid</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal result-modal" id="resultModal">
+    <div class="modal-content">
+      <h2 class="result-title" id="resultTitle">Title</h2>
+      <div class="result-message" id="resultMessage">Message</div>
+      <div class="winning-boards" id="winningBoards"></div>
+      <button id="playAgainButton">Play Again</button>
+    </div>
+  </div>
+
+  <audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+  <audio id="loseSound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_fail_strings.ogg"></audio>
+  <audio id="drawSound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_woo_woo.ogg"></audio>
+
+  <script>
+    const boardState = Array.from({ length: 9 }, () => Array(9).fill(null));
+    const boardWins = Array(9).fill(null);
+    let currentPlayer = 'X';
+    let nextBoard = -1;
+    let gameOver = false;
+    let winningCombination = null;
+
+    const statusDisplay = document.getElementById('status');
+    const bigBoard = document.getElementById('bigBoard');
+    const clickSound = document.getElementById('clickSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+    const drawSound = document.getElementById('drawSound');
+    const restartButton = document.getElementById('restartButton');
+    const instructionsButton = document.getElementById('instructionsButton');
+    const instructionsModal = document.getElementById('instructionsModal');
+    const closeModal = document.getElementById('closeModal');
+    const resultModal = document.getElementById('resultModal');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMessage = document.getElementById('resultMessage');
+    const winningBoards = document.getElementById('winningBoards');
+    const playAgainButton = document.getElementById('playAgainButton');
+
+    function createBoards() {
+      bigBoard.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const sb = document.createElement('div');
+        sb.classList.add('small-board');
+        sb.dataset.board = i;
+        for (let j = 0; j < 9; j++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.cell = j;
+          cell.addEventListener('click', handlePlayerMove);
+          sb.appendChild(cell);
+        }
+        bigBoard.appendChild(sb);
+      }
+    }
+
+    function handlePlayerMove(e) {
+      if (gameOver) return;
+      
+      const cell = e.target;
+      const smallBoard = cell.parentElement;
+      const b = parseInt(smallBoard.dataset.board);
+      const c = parseInt(cell.dataset.cell);
+
+      if ((nextBoard !== -1 && nextBoard !== b) || cell.textContent || boardWins[b]) return;
+
+      makeMove(b, c, currentPlayer);
+      clickSound.play();
+
+      if (!checkFullGameEnd()) {
+        currentPlayer = 'O';
+        updateStatus();
+        setTimeout(aiMove, 400);
+      }
+    }
+
+    function makeMove(b, c, player) {
+      const cell = bigBoard.children[b].children[c];
+      boardState[b][c] = player;
+      cell.textContent = player;
+      cell.classList.add('disabled', `cell-${player}`);
+
+      const win = checkWin(boardState[b]);
+      if (win) {
+        boardWins[b] = player;
+        bigBoard.children[b].classList.add(`won-${player}`);
+      }
+
+      nextBoard = boardWins[c] || isFull(boardState[c]) ? -1 : c;
+      updateBoardInteractivity();
+      updateStatus();
+    }
+
+    function updateBoardInteractivity() {
+      for (let i = 0; i < 9; i++) {
+        const board = bigBoard.children[i];
+        const active = nextBoard === -1 || nextBoard === i;
+        board.classList.toggle('active', active && !boardWins[i]);
+        for (const cell of board.children) {
+          cell.classList.toggle('disabled', !active || cell.textContent);
+        }
+      }
+    }
+
+    function updateStatus() {
+      if (gameOver) return;
+      
+      if (nextBoard === -1) {
+        statusDisplay.textContent = `Player ${currentPlayer}'s turn (choose any board)`;
+      } else {
+        statusDisplay.textContent = `Player ${currentPlayer}'s turn (play in board ${nextBoard + 1})`;
+      }
+    }
+
+    function aiMove() {
+      if (gameOver) return;
+      
+      const move = minimaxAI();
+      makeMove(move.b, move.c, currentPlayer);
+      clickSound.play();
+      if (!checkFullGameEnd()) currentPlayer = 'X';
+      updateStatus();
+    }
+
+    function minimaxAI() {
+      const possibleMoves = [];
+      for (let b = 0; b < 9; b++) {
+        if (nextBoard !== -1 && b !== nextBoard) continue;
+        if (boardWins[b]) continue;
+        for (let c = 0; c < 9; c++) {
+          if (!boardState[b][c]) possibleMoves.push({ b, c });
+        }
+      }
+      return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    }
+
+    function checkWin(cells) {
+      const lines = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+      return lines.some(([a,b,c]) =>
+        cells[a] && cells[a] === cells[b] && cells[b] === cells[c]
+      );
+    }
+
+    function checkBigWin(boards) {
+      const lines = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+      
+      for (const [a,b,c] of lines) {
+        if (boards[a] && boards[a] === boards[b] && boards[b] === boards[c]) {
+          return { winner: boards[a], combination: [a,b,c] };
+        }
+      }
+      return null;
+    }
+
+    function isFull(cells) {
+      return cells.every(x => x);
+    }
+
+    function checkFullGameEnd() {
+      const result = checkBigWin(boardWins);
+      if (result) {
+        gameOver = true;
+        winningCombination = result.combination;
+        showResult(result.winner);
+        return true;
+      } else if (boardWins.every(x => x)) {
+        gameOver = true;
+        showResult(null);
+        return true;
+      }
+      return false;
+    }
+
+    function showResult(winner) {
+      if (winner === 'X') {
+        resultTitle.textContent = 'You Win!';
+        resultTitle.className = 'result-title win-title';
+        resultMessage.textContent = 'Congratulations! You defeated the AI.';
+        winSound.play();
+        createConfetti();
+      } else if (winner === 'O') {
+        resultTitle.textContent = 'You Lose!';
+        resultTitle.className = 'result-title lose-title';
+        resultMessage.textContent = 'The AI outsmarted you this time. Try again!';
+        loseSound.play();
+      } else {
+        resultTitle.textContent = "It's a Draw!";
+        resultTitle.className = 'result-title draw-title';
+        resultMessage.textContent = 'The game ended in a tie. Good match!';
+        drawSound.play();
+      }
+
+      if (winningCombination) {
+        const boardNames = winningCombination.map(b => `Board ${b+1}`).join(', ');
+        winningBoards.textContent = `Winning boards: ${boardNames}`;
+      } else {
+        winningBoards.textContent = '';
+      }
+
+      resultModal.classList.add('active');
+    }
+
+    function createConfetti() {
+      const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+      
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.top = '-10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = `${Math.random() * 10 + 5}px`;
+        confetti.style.height = `${Math.random() * 10 + 5}px`;
+        confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+        document.body.appendChild(confetti);
+        
+        confetti.addEventListener('animationend', () => {
+          confetti.remove();
+        });
+      }
+    }
+
+    function resetGame() {
+      // Remove any remaining confetti
+      document.querySelectorAll('.confetti').forEach(el => el.remove());
+      
+      for (let i = 0; i < 9; i++) {
+        boardWins[i] = null;
+        for (let j = 0; j < 9; j++) {
+          boardState[i][j] = null;
+        }
+      }
+      currentPlayer = 'X';
+      nextBoard = -1;
+      gameOver = false;
+      winningCombination = null;
+      createBoards();
+      updateBoardInteractivity();
+      updateStatus();
+      resultModal.classList.remove('active');
+    }
+
+    restartButton.addEventListener('click', resetGame);
+    instructionsButton.addEventListener('click', () => {
+      instructionsModal.classList.add('active');
+    });
+    closeModal.addEventListener('click', () => {
+      instructionsModal.classList.remove('active');
+    });
+    instructionsModal.addEventListener('click', (e) => {
+      if (e.target === instructionsModal) {
+        instructionsModal.classList.remove('active');
+      }
+    });
+    playAgainButton.addEventListener('click', resetGame);
+
+    createBoards();
+    updateBoardInteractivity();
+    updateStatus();
+  </script>
+</body>
+</html>
