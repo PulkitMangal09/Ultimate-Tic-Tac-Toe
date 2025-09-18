@@ -7,22 +7,22 @@ An enhanced version of the classic Tic-Tac-Toe game with nested boards and strat
 
 ## Features
 
-✨ **Interactive Gameplay**  
+**Interactive Gameplay**  
 - Play against an AI opponent
 - Clear visual indicators for active boards
 - Smooth animations and sound effects
 
-🎨 **Modern UI**  
+**Modern UI**  
 - Clean, responsive design
 - Distinct color scheme for X (purple) and O (red)
 - Pulsing animation on active boards
 
-🏆 **Enhanced Win Detection**  
+**Enhanced Win Detection**  
 - Visual celebration with confetti when you win
 - Clear display of winning board combinations
 - Different animations for win/lose/draw outcomes
 
-📱 **Mobile-Friendly**  
+**Mobile-Friendly**  
 - Fully responsive design
 - Optimized for touch devices
 - Adapts to different screen sizes
